@@ -193,7 +193,7 @@ describe('SmartBanner', function() {
   const HTML_WITH_JQUERY_MOBILE = `<!doctype html><html><head></head><body class="ui-page">${SCRIPTS_JQUERY_MOBILE}</body></html>`;
   const HTML_WITH_JQUERY_MOBILE_AND_META = `<!doctype html><html>${HEAD}<body class="ui-page">${SCRIPTS_JQUERY_MOBILE}</body></html>`;
 
-  const IOS_BODY = `<div class="smartbanner smartbanner--ios js_smartbanner">
+  const IOS_BODY = `<div class="smartbanner smartbanner--top smartbanner--ios">
       <span class="smartbanner__exit js_smartbanner__exit" aria-label="Close iOS Smart App Banner"></span>
       <div class="smartbanner__icon" style="background-image: url(icon--apple.jpg);"></div>
       <div class="smartbanner__info">
@@ -206,7 +206,7 @@ describe('SmartBanner', function() {
       <a href="https://itunes.apple.com/us/genre/ios/id36?mt=8" target="_blank" class="smartbanner__button js_smartbanner__button" rel="noopener" aria-label="View"><span class="smartbanner__button__label">View</span></a>
     </div>`;
 
-  const ANDROID_BODY = `<div class="smartbanner smartbanner--android js_smartbanner">
+  const ANDROID_BODY = `<div class="smartbanner smartbanner--top smartbanner--android">
       <span class="smartbanner__exit js_smartbanner__exit" aria-label="Close Android Smart App Banner"></span>
       <div class="smartbanner__icon" style="background-image: url(icon--google.jpg);"></div>
       <div class="smartbanner__info">
@@ -219,7 +219,7 @@ describe('SmartBanner', function() {
       <a href="https://play.google.com/store" target="_blank" class="smartbanner__button js_smartbanner__button" rel="noopener" aria-label="View"><span class="smartbanner__button__label">View</span></a>
     </div>`;
 
-  const UNDEFINED_BODY = `<div class="smartbanner smartbanner--undefined js_smartbanner">
+  const UNDEFINED_BODY = `<div class="smartbanner smartbanner--top smartbanner--undefined">
       <span class="smartbanner__exit js_smartbanner__exit" aria-label="Close Smart App Banner"></span>
       <div class="smartbanner__icon" style="background-image: url(icon--apple.jpg);"></div>
       <div class="smartbanner__info">
@@ -232,7 +232,7 @@ describe('SmartBanner', function() {
       <a href="#" target="_blank" class="smartbanner__button js_smartbanner__button" rel="noopener" aria-label="View"><span class="smartbanner__button__label">View</span></a>
     </div>`;
 
-  const ANDROID_CUSTOM_DESIGN_BODY = `<div class="smartbanner smartbanner--custom-design js_smartbanner">
+  const ANDROID_CUSTOM_DESIGN_BODY = `<div class="smartbanner smartbanner--top smartbanner--custom-design">
       <span class="smartbanner__exit js_smartbanner__exit" aria-label="Close banner"></span>
       <div class="smartbanner__icon" style="background-image: url(icon--google.jpg);"></div>
       <div class="smartbanner__info">
@@ -296,7 +296,7 @@ describe('SmartBanner', function() {
 
         it('expected to add iOS template to body', function() {
           smartbanner.publish();
-          let html = document.querySelector('.js_smartbanner').outerHTML;
+          let html = smartbanner.shadow.querySelector('.smartbanner').outerHTML;
           expect(html).to.eql(IOS_BODY);
         });
 
@@ -322,7 +322,7 @@ describe('SmartBanner', function() {
 
         it('expected to add iOS template to body', function() {
           smartbanner.publish();
-          let html = document.querySelector('.js_smartbanner').outerHTML;
+          let html = smartbanner.shadow.querySelector('.smartbanner').outerHTML;
           expect(html).to.eql(IOS_BODY);
         });
 
@@ -341,7 +341,7 @@ describe('SmartBanner', function() {
 
         it('expected to add iOS template to body', function() {
           smartbanner.publish();
-          let html = document.querySelector('.js_smartbanner').outerHTML;
+          let html = smartbanner.shadow.querySelector('.smartbanner').outerHTML;
           expect(html).to.eql(IOS_BODY);
         });
 
@@ -361,7 +361,7 @@ describe('SmartBanner', function() {
 
           it('expected to add Android template to body', function() {
             smartbanner.publish();
-            let html = document.querySelector('.js_smartbanner').outerHTML;
+            let html = smartbanner.shadow.querySelector('.smartbanner').outerHTML;
             expect(html).to.eql(ANDROID_BODY);
           });
 
@@ -379,7 +379,7 @@ describe('SmartBanner', function() {
 
           it('expected to add Android template to body', function() {
             smartbanner.publish();
-            let html = document.querySelector('.js_smartbanner').outerHTML;
+            let html = smartbanner.shadow.querySelector('.smartbanner').outerHTML;
             expect(html).to.eql(ANDROID_CUSTOM_DESIGN_BODY);
           });
         });
@@ -541,7 +541,7 @@ describe('SmartBanner', function() {
 
       it('expected to add iOS template to body', function() {
         smartbanner.publish();
-        let html = document.querySelector('.js_smartbanner').outerHTML;
+        let html = smartbanner.shadow.querySelector('.smartbanner').outerHTML;
         expect(html).to.eql(IOS_BODY);
       });
 
@@ -1250,7 +1250,7 @@ describe('SmartBanner', function() {
       });
       let clickEvent = document.createEvent("HTMLEvents");
       clickEvent.initEvent("click", false, true);
-      document.querySelector('.js_smartbanner__exit').dispatchEvent(clickEvent);
+      smartbanner.shadow.querySelector('.js_smartbanner__exit').dispatchEvent(clickEvent);
     });
 
   });
@@ -1271,7 +1271,7 @@ describe('SmartBanner', function() {
       });
       let clickEvent = document.createEvent("HTMLEvents");
       clickEvent.initEvent("click", false, true);
-      document.querySelector('.js_smartbanner__button').dispatchEvent(clickEvent);
+      smartbanner.shadow.querySelector('.js_smartbanner__button').dispatchEvent(clickEvent);
     });
 
   });

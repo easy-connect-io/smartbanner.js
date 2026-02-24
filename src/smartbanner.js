@@ -1,6 +1,7 @@
 import Bakery from './bakery.js';
 import Detector from './detector.js';
 import OptionParser from './optionparser.js';
+import styles from './smartbanner-styles.js';
 
 const DEFAULT_PLATFORMS = 'android,ios';
 const DEFAULT_CLOSE_LABEL = 'Close';
@@ -21,10 +22,10 @@ function handleClickout(event, self) {
 }
 
 function addEventListeners(self) {
-  let closeIcon = document.querySelector('.js_smartbanner__exit');
+  let closeIcon = self.shadow.querySelector('.js_smartbanner__exit');
   closeIcon.addEventListener('click', (event) => handleExitClick(event, self));
 
-  let button = document.querySelector('.js_smartbanner__button');
+  let button = self.shadow.querySelector('.js_smartbanner__button');
   button.addEventListener('click', (event) => handleClickout(event, self));
 }
 
@@ -115,7 +116,7 @@ export default class SmartBanner {
   get html() {
     let modifier = !this.options.customDesignModifier ? this.platform : this.options.customDesignModifier;
     let position = this.options.position || 'top';
-    return `<div class="smartbanner smartbanner--${position} smartbanner--${modifier} js_smartbanner ">
+    return `<div class="smartbanner smartbanner--${position} smartbanner--${modifier}">
       <span class="smartbanner__exit js_smartbanner__exit" aria-label="${this.closeLabel}"></span>
       <div class="smartbanner__icon" style="background-image: url(${this.icon});"></div>
       <div class="smartbanner__info">
@@ -192,17 +193,29 @@ export default class SmartBanner {
       return false;
     }
 
-    let bannerDiv = document.createElement('div');
-    document.querySelector('body').prepend(bannerDiv);
-    bannerDiv.outerHTML = this.html;
+    let host = document.createElement('div');
+    host.classList.add('js_smartbanner');
+    document.body.prepend(host);
+
+    this.shadow = host.attachShadow({ mode: 'open' });
+
+    let style = document.createElement('style');
+    style.textContent = styles;
+    this.shadow.appendChild(style);
+
+    let template = document.createElement('template');
+    template.innerHTML = this.html;
+    this.shadow.appendChild(template.content);
+
     let event = new Event('smartbanner.view');
     document.dispatchEvent(event);
     addEventListeners(this);
   }
 
   exit() {
-    let banner = document.querySelector('.js_smartbanner');
-    document.querySelector('body').removeChild(banner);
+    let host = document.querySelector('.js_smartbanner');
+    host.remove();
+    this.shadow = null;
     let event = new Event('smartbanner.exit');
     document.dispatchEvent(event);
     Bakery.bake(this.hideTtl, this.hidePath);

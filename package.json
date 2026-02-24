@@ -47,7 +47,8 @@
     "build:js": "npm run browserify && npm run uglify",
     "build:css": "sass src/smartbanner.scss dist/smartbanner.css",
     "build:css-min": "sass --style=compressed src/smartbanner.scss dist/smartbanner.min.css",
-    "build": "npm run build:js && npm run build:css && npm run build:css-min && npm run bannerise",
+    "build:css-inline": "node scripts/inline-css.js",
+    "build": "npm run build:css && npm run build:css-min && npm run build:css-inline && npm run build:js && npm run bannerise",
     "watch:js": "watchify src/index.js -o dist/smartbanner.js -t [ babelify --presets [ @babel/preset-env ] ] -v",
     "watch:css": "npm run build:css | npm run autoprefix -- -w",
     "mocha": "mocha --require @babel/register",
@@ -69,5 +70,8 @@
     "package-lock.json",
     "package.json",
     "src"
-  ]
+  ],
+  "volta": {
+    "node": "21.7.3"
+  }
 }

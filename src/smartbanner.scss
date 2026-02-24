@@ -3,6 +3,10 @@ $grey: #716f6f;
 $blue: #1474fc;
 $black: #000;
 
+:host {
+  all: initial;
+}
+
 .smartbanner {
   left: 0;
   z-index: 9999;
