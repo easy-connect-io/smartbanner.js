@@ -3,7 +3,7 @@
  * Copyright © 2026 Ain Tohvri, contributors. Licensed under GPL-3.0.
  */
 :host {
-  all: initial;
+  all: initial !important;
 }
 
 .smartbanner {
