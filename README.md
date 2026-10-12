@@ -1,5 +1,5 @@
 # smartbanner.js [![Build Status](https://github.com/ain/smartbanner.js/workflows/Node.js%20CI/badge.svg)](https://github.com/ain/smartbanner.js/actions?query=workflow%3A%22Node.js+CI%22) [![npm version](https://badge.fury.io/js/smartbanner.js.svg)](https://badge.fury.io/js/smartbanner.js) [![Bower version](https://badge.fury.io/bo/smartbanner.js.svg)](https://badge.fury.io/bo/smartbanner.js) [![Coverage Status](https://coveralls.io/repos/github/ain/smartbanner.js/badge.svg?branch=main)](https://coveralls.io/github/ain/smartbanner.js?branch=main)
-Customisable smart app banner for iOS and Android.
+Customisable and lightweight smart app banner for iOS and Android.
 
 ![smartbanner.js iOS screenshot](https://github.com/ain/smartbanner.js/raw/main/screenshot-ios.png) &nbsp; ![smartbanner.js Android screenshot](https://github.com/ain/smartbanner.js/raw/main/screenshot-android.png)
 
@@ -12,12 +12,12 @@ Customisable smart app banner for iOS and Android.
   - [custom design modifier](#custom-design-modifier) for externally defined styles or same design on all platforms
 - Close button that closes the banner and sets cookie to keep banner closed
   - for current session or [for defined time](#time-limited-close)
-  - at current path or [site-wide](#path-designated-close)
+  - site-wide or [at a designated path](#path-designated-close)
 - Platform-specific app icon and _View_ button
 - User Agent specific targeting
-- Pure JavaScript coming in at 17 KB minified, no jQuery required
+- Pure JavaScript coming in at __6.6KB minified__!
 - [Events](#events) emitted for [API](#smartbanner-api-use) implementations
-- ECMAScript 6 source
+- ECMAScript 6 (`es2015`) source
 
 ## Basic Usage
 
@@ -40,20 +40,20 @@ Customisable smart app banner for iOS and Android.
 <!-- End SmartBanner configuration -->
 ```
 
-Additionally, JavaScript and CSS has to be included:
+Additionally, JavaScript and CSS have to be included:
 
 ```html
 <link rel="stylesheet" href="/dist/smartbanner.min.css">
 <script src="/dist/smartbanner.min.js"></script>
 ```
 
-## Advanced usage
+## Advanced Usage
 
 ### Hide the smartbanner for certain User Agents
 
 There are cases where you do not want to show the smart app banner on all Android and/or all iOS devices. For example:
-* your app is availabe only for some Android/iOS versions
-* your app is only availabe on iPhone, but not iPad
+* your app is available only for some Android/iOS versions
+* your app is only available on iPhone, but not iPad
 * your app is a web app which also shows this website, but of course should not show the smart app banner.
 
 In this case you can define a regular expression, which matches all user agent strings that should be excluded. Just add another `meta` tag like the following:
@@ -64,12 +64,19 @@ This regular expression would match any user agent string, that ends with *My Ex
 
 ### Show the smartbanner for certain User Agents
 
-In addition to blacklisting certain user agents using the regex explained in the previous section, you can also whitelist certain user agents:
+In addition to blacklisting certain user agents using the regex explained in the previous section, you can also show smartbanner to user agents that `enabled-platforms` would leave out:
 ```html
 <meta name="smartbanner:include-user-agent-regex" content="iPhone 7">
 ```
 
-**Note:** You can define `enabled-platforms`, `exclude-user-agent-regex` and `include-user-agent-regex` at the same time. `enabled-platforms` has the lowest priority, `exclude-user-agent-regex` the highest priority.
+Note that `include-user-agent-regex` only adds to what `enabled-platforms` allows, it never narrows it down. To show smartbanner to matching user agents *only*, disable all platforms alongside it:
+
+```html
+<meta name="smartbanner:enabled-platforms" content="none">
+<meta name="smartbanner:include-user-agent-regex" content="iPhone 7">
+```
+
+**Note:** You can define `enabled-platforms`, `exclude-user-agent-regex` and `include-user-agent-regex` at the same time. Smartbanner is shown when either `enabled-platforms` or `include-user-agent-regex` matches, unless `exclude-user-agent-regex` matches, which always takes precedence.
 
 ### Disable Positioning
 
@@ -88,7 +95,7 @@ If you want to prevent smartbanner rendering in some html pages, you can add opt
 
 ### Time-limited close
 
-By default smartbanner would not reappear if closed. This can be prevented with `hide-ttl` option. Following example would keep smartbanner closed for 10 seconds (10000 ms):
+By default smartbanner would not reappear for the remainder of the browser session, as closing it sets a session cookie. The `hide-ttl` option replaces that with a fixed duration. Following example would keep smartbanner closed for 10 seconds (10000 ms):
 
 ```html
 <meta name="smartbanner:hide-ttl" content="10000">
@@ -96,12 +103,12 @@ By default smartbanner would not reappear if closed. This can be prevented with 
 
 ### Path-designated close
 
-Once closed smartbanner would reappear if site path changes. It is default behaviour.
+Once closed smartbanner would stay closed site-wide. It is default behaviour, equivalent to `hide-path` being set to `/`.
 
-Following example would keep smartbanner closed site-wide (but only when user has actually closed it):
+Following example would keep smartbanner closed under `/shop` only (but only when user has actually closed it), meaning it would reappear elsewhere on the site:
 
 ```html
-<meta name="smartbanner:hide-path" content="/">
+<meta name="smartbanner:hide-path" content="/shop">
 ```
 
 ### Custom design modifier
@@ -139,11 +146,15 @@ By default smartbanner is added to DOM automatically. You can disable it with
 <meta name="smartbanner:api" content="yes">
 ```
 
-and add smartbanner to DOM manually:
+which also accepts `true` as value, and add smartbanner to DOM manually:
 
 ```js
-smartbanner.publish();
+window.addEventListener('load', function() {
+  smartbanner.publish();
+});
 ```
+
+**Note:** `smartbanner` is exposed on `window` only once the page has loaded, hence the `load` handler above.
 
 ### Events
 
@@ -159,8 +170,16 @@ Following events are being dispatched:
 Example handler (closes smartbanner when user clicks to navigate to app store):
 
 ```js
-document.addEventListener('smartbanner.clickout', smartbanner.exit);
+document.addEventListener('smartbanner.clickout', () => smartbanner.exit());
 ```
+
+## Node.js Support
+
+Node.js is only required for installing and building `smartbanner.js`, the distributed bundle itself runs in browsers.
+
+Supported Node.js versions follow the [Node.js release schedule](https://github.com/nodejs/release#release-schedule): _Current_, _Active LTS_ and _Maintenance LTS_ lines are supported, end-of-life ones are not.
+
+**Note:** dropping support for an end-of-life Node.js version is released as a minor version and is not considered a breaking change.
 
 ## Contributing
 
@@ -174,4 +193,4 @@ Cross-browser testing across all mobile platforms is powered by
 
 ## Licence
 
-Copyright © 2016-2024 Ain Tohvri, contributors. Licenced under [GPL-3](https://raw.githubusercontent.com/ain/smartbanner.js/main/LICENSE).
+Copyright © 2016-2026 Ain Tohvri, contributors. Licenced under [GPL-3](https://raw.githubusercontent.com/ain/smartbanner.js/main/LICENSE).

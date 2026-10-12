@@ -1,8 +1,5 @@
-let jsdom = require('jsdom');
-
-import chai from '../../node_modules/chai/chai.js';
-let expect = chai.expect;
-
+import { JSDOM } from 'jsdom';
+import { expect } from 'chai';
 import Detector from '../../src/detector.js';
 
 describe('Detector', function() {
@@ -20,7 +17,6 @@ describe('Detector', function() {
   const EXCLUDE_USER_AGENT_REGEX = '^.*My Example Webapp$';
   const INCLUDE_USER_AGENT_REGEX = '.*iPhone OS [9\\-10].*';
 
-  const { JSDOM } = jsdom;
   const SCRIPTS_JQUERY_MOBILE = `<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <script>window.conclude();</script>`;
@@ -34,8 +30,7 @@ describe('Detector', function() {
     context('when on Linux desktop', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_LINUX_DESKTOP });
-        global.window = new JSDOM(HTML, { resources: resourceLoader }).window;
+        global.window = new JSDOM(HTML, { resources: { userAgent: USER_AGENT_LINUX_DESKTOP } }).window;
         platform = Detector.platform();
       });
 
@@ -47,8 +42,7 @@ describe('Detector', function() {
     context('when on iPhone with iOS8', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_IPHONE_IOS8 });
-        global.window = new JSDOM(HTML, { resources: resourceLoader }).window;
+        global.window = new JSDOM(HTML, { resources: { userAgent: USER_AGENT_IPHONE_IOS8 } }).window;
         platform = Detector.platform();
       });
 
@@ -68,8 +62,7 @@ describe('Detector', function() {
     context('when on iPhone with iOS9', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_IPHONE_IOS9 });
-        global.window = new JSDOM(HTML, { resources: resourceLoader }).window;
+        global.window = new JSDOM(HTML, { resources: { userAgent: USER_AGENT_IPHONE_IOS9 } }).window;
         platform = Detector.platform();
       });
 
@@ -89,8 +82,7 @@ describe('Detector', function() {
     context('when on iPhone with Custom Web App', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_IPHONE_CUSTOM_WEBAPP });
-        global.window = new JSDOM(HTML, { resources: resourceLoader }).window;
+        global.window = new JSDOM(HTML, { resources: { userAgent: USER_AGENT_IPHONE_CUSTOM_WEBAPP } }).window;
         platform = Detector.platform();
       });
 
@@ -110,8 +102,7 @@ describe('Detector', function() {
     context('when on iPad', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_IPAD });
-        global.window = new JSDOM(HTML, { resources: resourceLoader }).window;
+        global.window = new JSDOM(HTML, { resources: { userAgent: USER_AGENT_IPAD } }).window;
         platform = Detector.platform();
       });
 
@@ -131,9 +122,8 @@ describe('Detector', function() {
     context('when on iPad iOS 13 or newer', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_IPAD_IOS13 });
         global.window = new JSDOM(HTML, {
-          resources: resourceLoader,
+          resources: { userAgent: USER_AGENT_IPAD_IOS13 },
           beforeParse(window) {
             window.navigator.maxTouchPoints = 1;
           }
@@ -157,8 +147,7 @@ describe('Detector', function() {
     context('when on iPod', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_IPOD });
-        global.window = new JSDOM(HTML, { resources: resourceLoader }).window;
+        global.window = new JSDOM(HTML, { resources: { userAgent: USER_AGENT_IPOD } }).window;
         platform = Detector.platform();
       });
 
@@ -178,8 +167,7 @@ describe('Detector', function() {
     context('when on Android', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_ANDROID });
-        global.window = new JSDOM(HTML, { resources: resourceLoader }).window;
+        global.window = new JSDOM(HTML, { resources: { userAgent: USER_AGENT_ANDROID } }).window;
         platform = Detector.platform();
       });
 
@@ -199,8 +187,7 @@ describe('Detector', function() {
     context('when on Android with Custom Web App', function() {
 
       before(function() {
-        const resourceLoader = new jsdom.ResourceLoader({ userAgent: USER_AGENT_ANDROID_CUSTOM_WEBAPP });
-        global.window = new JSDOM(HTML, { resources: resourceLoader }).window;
+        global.window = new JSDOM(HTML, { resources: { userAgent: USER_AGENT_ANDROID_CUSTOM_WEBAPP } }).window;
         platform = Detector.platform();
       });
 
