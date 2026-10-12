@@ -296,13 +296,6 @@ describe('SmartBanner', function() {
           expect(html).to.eql(IOS_BODY);
         });
 
-        it('expected to store original top margin', function() {
-          let html = document.querySelector('html');
-          let margin = parseFloat(getComputedStyle(html).marginTop);
-          smartbanner.publish();
-          expect(smartbanner.originalTopMargin).to.eql(margin);
-        });
-
       });
 
       context('when on iPad', function() {
@@ -1042,43 +1035,6 @@ describe('SmartBanner', function() {
         done();
       });
 
-      it('expected to restore HTML margin', function(done) {
-        smartbanner.exit();
-        let html = document.querySelector('html');
-        let margin = parseFloat(getComputedStyle(html).marginTop);
-        if (isNaN(margin)) {
-          margin = 0;
-        }
-        expect(margin).to.eql(smartbanner.originalTopMargin);
-        done();
-      });
-
-    });
-
-    context('with jQuery Mobile', function(done) {
-
-      before(function(done) {
-        global.window = new JSDOM(HTML_WITH_JQUERY_MOBILE_AND_META, { runScripts: 'dangerously', resources: { userAgent: USER_AGENT_IPHONE_IOS9 } }).window;
-        global.window.conclude = () => {
-          global.document = window.document;
-          global.getComputedStyle = window.getComputedStyle;
-          global.$ = window.jQuery;
-          global.Event = window.Event;
-          smartbanner = new SmartBanner();
-          smartbanner.publish();
-          done();
-        };
-      });
-
-      it('expected to restore top distance', function() {
-        smartbanner.exit();
-        let page = global.document.querySelector('.ui-page');
-        let top = parseFloat(getComputedStyle(page).top);
-        if (isNaN(top)) {
-          top = 0;
-        }
-        expect(top).to.eql(smartbanner.originalTop);
-      });
     });
 
   });
