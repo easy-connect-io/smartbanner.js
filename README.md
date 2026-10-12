@@ -3,6 +3,26 @@ Customisable and lightweight smart app banner for iOS and Android.
 
 ![smartbanner.js iOS screenshot](https://github.com/ain/smartbanner.js/raw/main/screenshot-ios.png) &nbsp; ![smartbanner.js Android screenshot](https://github.com/ain/smartbanner.js/raw/main/screenshot-android.png)
 
+## easy-connect fork
+
+This is easy-connect's fork of [ain/smartbanner.js](https://github.com/ain/smartbanner.js), served to customer websites from `https://code.easy-connect.io/smartbanner/`. It differs from upstream in two ways:
+
+- The banner renders inside a shadow root with its CSS inlined into the JS (`scripts/inline-css.js` generates `src/smartbanner-styles.js`), so the host page's styles can't reach it. It no longer shifts the page content; it sits in the page flow instead.
+- `<meta name="smartbanner:position" content="top|top-absolute|bottom">` places it (default `top`).
+
+App icons live in `icons/<saleschannel>.png` (192 px, from each app's iOS icon in ec-platform) and are served from `https://code.easy-connect.io/smartbanner/icons/<saleschannel>.png`. Snippets must use those, never the App Store or Play Store image URLs: those send every visitor's IP to Apple or Google on page load.
+
+To merge upstream: `git remote add upstream https://github.com/ain/smartbanner.js` once, then `git fetch upstream && git merge upstream/main`, then `npm run build` and commit `dist/`.
+
+To deploy (AWS account prod1, bucket `code.easy-connect.io`, CloudFront `E1ZPZAGCVF4LDT`):
+
+```sh
+aws --profile prod1 s3 cp dist/smartbanner.min.js s3://code.easy-connect.io/smartbanner/
+aws --profile prod1 s3 cp dist/smartbanner.min.css s3://code.easy-connect.io/smartbanner/
+aws --profile prod1 s3 sync icons/ s3://code.easy-connect.io/smartbanner/icons/
+aws --profile prod1 cloudfront create-invalidation --distribution-id E1ZPZAGCVF4LDT --paths '/smartbanner/*'
+```
+
 ## Features
 
 - Populating smartbanner is as easy as [adding meta tags](#basic-usage), no JavaScript knowledge required
