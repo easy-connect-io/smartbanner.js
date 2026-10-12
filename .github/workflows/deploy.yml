@@ -1,0 +1,70 @@
+name: Deploy
+
+# Uploads the committed dist/smartbanner.min.{js,css} and icons/*.png to
+# s3://code.easy-connect.io/smartbanner/ (AWS prod1), which every customer site's snippet loads.
+# Runs on each push to main that changes them, or by hand (Actions → Deploy → Run workflow).
+# CloudFront (E1ZPZAGCVF4LDT) caches for at most 10 s, so no invalidation is needed.
+#
+# Auth: GitHub OIDC into the prod1 role smartbanner-github-deploy, which trusts this repo's
+# main branch only and may only s3:PutObject under code.easy-connect.io/smartbanner/.
+# Create it once with deploy/github-oidc-role.sh.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - dist/smartbanner.min.js
+      - dist/smartbanner.min.css
+      - icons/**
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+      - run: npm ci
+      - run: npm test
+      - name: Check that the committed dist/ was built from src/
+        run: |
+          npm run build
+          # The banner's copyright year is the build year, so ignore that line.
+          if ! git diff --exit-code -I 'Copyright ©' -- dist/smartbanner.min.js dist/smartbanner.min.css; then
+            echo "::error::dist/ doesn't match src/. Run npm run build and commit dist/."
+            exit 1
+          fi
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::842001031685:role/smartbanner-github-deploy
+          aws-region: eu-central-1
+      # cp, not sync: PutObject is all the role may do, and nothing live is ever deleted.
+      - name: Upload to code.easy-connect.io
+        run: |
+          aws s3 cp dist/smartbanner.min.js s3://code.easy-connect.io/smartbanner/smartbanner.min.js --content-type application/javascript
+          aws s3 cp dist/smartbanner.min.css s3://code.easy-connect.io/smartbanner/smartbanner.min.css --content-type text/css
+          aws s3 cp icons/ s3://code.easy-connect.io/smartbanner/icons/ --recursive --content-type image/png
+      - name: Check that the CDN serves the new build
+        run: |
+          for f in smartbanner.min.js smartbanner.min.css; do
+            want=$(sha256sum "dist/$f" | cut -d' ' -f1)
+            for attempt in $(seq 1 12); do
+              got=$(curl -fsS "https://code.easy-connect.io/smartbanner/$f" | sha256sum | cut -d' ' -f1)
+              [ "$got" = "$want" ] && break
+              [ "$attempt" = 12 ] && { echo "::error::code.easy-connect.io still serves an old $f after 60 s"; exit 1; }
+              sleep 5
+            done
+            echo "$f is live"
+          done

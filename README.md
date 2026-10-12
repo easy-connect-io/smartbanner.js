@@ -14,14 +14,7 @@ App icons live in `icons/<saleschannel>.png` (192 px, from each app's iOS icon i
 
 To merge upstream: `git remote add upstream https://github.com/ain/smartbanner.js` once, then `git fetch upstream && git merge upstream/main`, then `npm run build` and commit `dist/`.
 
-To deploy (AWS account prod1, bucket `code.easy-connect.io`, CloudFront `E1ZPZAGCVF4LDT`):
-
-```sh
-aws --profile prod1 s3 cp dist/smartbanner.min.js s3://code.easy-connect.io/smartbanner/
-aws --profile prod1 s3 cp dist/smartbanner.min.css s3://code.easy-connect.io/smartbanner/
-aws --profile prod1 s3 sync icons/ s3://code.easy-connect.io/smartbanner/icons/
-aws --profile prod1 cloudfront create-invalidation --distribution-id E1ZPZAGCVF4LDT --paths '/smartbanner/*'
-```
+Pushing a change to `dist/smartbanner.min.{js,css}` or `icons/` to `main` deploys it to `s3://code.easy-connect.io/smartbanner/` (AWS prod1) through `.github/workflows/deploy.yml`, which you can also run by hand from the Actions tab. The workflow fails if the committed `dist/` wasn't built from `src/`. CloudFront caches for at most 10 seconds, so a deploy is live almost immediately on every customer site. The workflow signs in to AWS as the `smartbanner-github-deploy` role, which `deploy/github-oidc-role.sh` creates once.
 
 ## Features
 
