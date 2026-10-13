@@ -117,7 +117,7 @@ export default class SmartBanner {
     let modifier = !this.options.customDesignModifier ? this.platform : this.options.customDesignModifier;
     let position = this.options.position || 'top';
     return `<div class="smartbanner smartbanner--${position} smartbanner--${modifier}">
-      <span class="smartbanner__exit js_smartbanner__exit" aria-label="${this.closeLabel}"></span>
+      <a href="#" class="smartbanner__exit js_smartbanner__exit" title="${this.closeLabel}" rel="nofollow"></a>
       <div class="smartbanner__icon" style="background-image: url(${this.icon});"></div>
       <div class="smartbanner__info">
         <div>

@@ -1,8 +1,5 @@
-let jsdom = require('jsdom');
-
-import chai from '../../node_modules/chai/chai.js';
-let expect = chai.expect;
-
+import jsdom, { JSDOM } from 'jsdom';
+import { expect } from 'chai';
 import OptionParser from '../../src/optionparser.js';
 
 describe('OptionParser', function() {
@@ -57,8 +54,6 @@ describe('OptionParser', function() {
     <body>
     </body>
     </html>`;
-
-  const { JSDOM } = jsdom;
 
   describe('parse', function() {
 

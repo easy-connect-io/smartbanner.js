@@ -1,8 +1,9 @@
 {
   "name": "smartbanner.js",
-  "version": "1.24.1",
+  "version": "1.30.0",
+  "type": "module",
   "description": "Customisable smart app banner for iOS and Android",
-  "homepage": "https://github.com/ain/smartbanner.js#readme",
+  "homepage": "https://github.com/easy-connect-io/smartbanner.js#readme",
   "author": {
     "name": "Ain Tohvri",
     "email": "ain@flashbit.net"
@@ -13,48 +14,44 @@
   "main": "dist/smartbanner.js",
   "style": "dist/smartbanner.css",
   "license": "GPL-3.0",
-  "bugs": "https://github.com/ain/smartbanner.js/issues",
   "devDependencies": {
-    "@babel/core": "^7.6.2",
-    "@babel/preset-env": "^7.6.2",
-    "@babel/register": "^7.6.2",
-    "add-banner": "ain/add-banner#0667ab6",
-    "babelify": "^10.0.0",
-    "browserify": "^17.0.0",
-    "chai": "^4.2.0",
-    "coveralls": "^3.1.0",
-    "eslint": "^9.0.0",
-    "jsdom": "^24.0.0",
+    "add-banner": "github:ain/add-banner#a579acb",
+    "c8": "^12.0.0",
+    "chai": "^6.0.1",
+    "concurrently": "^10.0.0",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.0.0",
+    "jsdom": "^30.0.1",
     "local-web-server": "^5.1.0",
-    "mocha": "^10.0.0",
-    "nyc": "^15.1.0",
-    "sass": "^1.32.11",
-    "uglify-js": "^3.6.0",
-    "watchify": "^4.0.0"
+    "mocha": "^12.0.0",
+    "sass": "^1.32.11"
+  },
+  "overrides": {
+    "yargs": "^18.0.0",
+    "shell-quote": "^1.12.0"
   },
   "engines": {
-    "node": ">=10.24.1 <22.0.0"
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ain/smartbanner.js.git"
+    "url": "https://github.com/easy-connect-io/smartbanner.js.git"
   },
   "scripts": {
     "bannerise": "add-banner --template banner.tmpl dist/smartbanner.css dist/smartbanner.js dist/smartbanner.min.css dist/smartbanner.min.js",
-    "browserify": "browserify src/index.js -o dist/smartbanner.js -t [ babelify --presets [ @babel/preset-env ] ]",
-    "uglify": "uglifyjs dist/smartbanner.js -o dist/smartbanner.min.js",
-    "eslint": "eslint src/*.js",
-    "build:js": "npm run browserify && npm run uglify",
+    "eslint": "eslint src",
+    "prebuild": "npm run build:css && npm run build:css-inline && npm run build:js",
+    "build:js": "esbuild src/index.js --bundle --target=es2015 --outfile=dist/smartbanner.js",
+    "build:js-min": "esbuild src/index.js --bundle --target=es2015 --minify --outfile=dist/smartbanner.min.js",
     "build:css": "sass src/smartbanner.scss dist/smartbanner.css",
     "build:css-min": "sass --style=compressed src/smartbanner.scss dist/smartbanner.min.css",
     "build:css-inline": "node scripts/inline-css.js",
-    "build": "npm run build:css && npm run build:css-min && npm run build:css-inline && npm run build:js && npm run bannerise",
-    "watch:js": "watchify src/index.js -o dist/smartbanner.js -t [ babelify --presets [ @babel/preset-env ] ] -v",
-    "watch:css": "npm run build:css | npm run autoprefix -- -w",
-    "mocha": "mocha --require @babel/register",
-    "test": "nyc mocha --require @babel/register test/spec/*.js && nyc report --reporter=lcovonly",
+    "build": "npm run build:css-min && npm run build:js-min && npm run bannerise",
+    "watch:js": "esbuild src/index.js --bundle --target=es2015 --outfile=dist/smartbanner.js --watch",
+    "watch:css": "node scripts/inline-css.js --watch",
+    "test": "c8 mocha test/spec/*.js && c8 report --reporter=lcovonly",
     "test:watch": "npm run test -- -w",
-    "start": "ws --directory dist/ --port=8080 --log.format dev"
+    "start": "npm run prebuild && concurrently \"npm run watch:js\" \"npm run watch:css\" \"ws --directory dist/ --port=8080 --log.format dev\""
   },
   "keywords": [
     "javascript",
@@ -72,6 +69,6 @@
     "src"
   ],
   "volta": {
-    "node": "21.7.3"
+    "node": "24.21.0"
   }
 }

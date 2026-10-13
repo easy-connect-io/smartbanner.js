@@ -1,9 +1,17 @@
-const fs = require('fs');
-const path = require('path');
+import { watch, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import * as sass from 'sass';
 
-const cssPath = path.resolve(__dirname, '..', 'dist', 'smartbanner.css');
-const outPath = path.resolve(__dirname, '..', 'src', 'smartbanner-styles.js');
+const source = fileURLToPath(new URL('../src/smartbanner.scss', import.meta.url));
+const target = fileURLToPath(new URL('../src/smartbanner-styles.js', import.meta.url));
 
-const css = fs.readFileSync(cssPath, 'utf8');
+function inline() {
+  const { css } = sass.compile(source, { style: 'compressed' });
+  writeFileSync(target, `export default ${JSON.stringify(css)};\n`);
+}
 
-fs.writeFileSync(outPath, `export default ${JSON.stringify(css)};\n`);
+inline();
+
+if (process.argv.includes('--watch')) {
+  watch(source, inline);
+}

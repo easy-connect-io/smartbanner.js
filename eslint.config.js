@@ -1,13 +1,12 @@
-module.exports = [
+export default [
+  {
+    "ignores": ["src/smartbanner-styles.js"]
+  },
   {
     "rules": {
       "indent": [
         "error",
         2
-      ],
-      "linebreak-style": [
-        "error",
-        "unix"
       ],
       "quotes": [
         "error",
