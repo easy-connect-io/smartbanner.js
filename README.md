@@ -1,34 +1,53 @@
-# smartbanner.js [![Build Status](https://github.com/ain/smartbanner.js/workflows/Node.js%20CI/badge.svg)](https://github.com/ain/smartbanner.js/actions?query=workflow%3A%22Node.js+CI%22) [![npm version](https://badge.fury.io/js/smartbanner.js.svg)](https://badge.fury.io/js/smartbanner.js) [![Bower version](https://badge.fury.io/bo/smartbanner.js.svg)](https://badge.fury.io/bo/smartbanner.js) [![Coverage Status](https://coveralls.io/repos/github/ain/smartbanner.js/badge.svg?branch=main)](https://coveralls.io/github/ain/smartbanner.js?branch=main)
+# smartbanner.js [![Build Status](https://github.com/easy-connect-io/smartbanner.js/actions/workflows/build.yml/badge.svg)](https://github.com/easy-connect-io/smartbanner.js/actions/workflows/build.yml)
 Customisable and lightweight smart app banner for iOS and Android.
 
-![smartbanner.js iOS screenshot](https://github.com/ain/smartbanner.js/raw/main/screenshot-ios.png) &nbsp; ![smartbanner.js Android screenshot](https://github.com/ain/smartbanner.js/raw/main/screenshot-android.png)
+![smartbanner.js iOS screenshot](screenshot-ios.png) &nbsp; ![smartbanner.js Android screenshot](screenshot-android.png)
 
 ## easy-connect fork
 
-This is easy-connect's fork of [ain/smartbanner.js](https://github.com/ain/smartbanner.js), served to customer websites from `https://code.easy-connect.io/smartbanner/`. It differs from upstream in two ways:
+This is easy-connect's fork of [ain/smartbanner.js](https://github.com/ain/smartbanner.js), served to customer websites from `https://code.easy-connect.io/smartbanner/`. The rest of this README is upstream's documentation, corrected where the fork behaves differently:
 
-- The banner renders inside a shadow root with its CSS inlined into the JS (`scripts/inline-css.js` generates `src/smartbanner-styles.js`), so the host page's styles can't reach it. It no longer shifts the page content; it sits in the page flow instead.
-- `<meta name="smartbanner:position" content="top|top-absolute|bottom">` places it (default `top`).
+- **Shadow root.** The banner renders inside a shadow root with its CSS inlined into the JS (`scripts/inline-css.js` generates `src/smartbanner-styles.js`), so the host page's styles can't reach it. Pages only need the `<script>`, no stylesheet, and the [custom design modifier](#custom-design-modifier) can only switch between the built-in iOS and Android designs.
+- **[Position](#position).** `top` (the default) puts the banner at the top of `<body>`, in the page flow, so the content below moves down by its height. `top-absolute` and `bottom` place it over the content instead. The script never moves page content itself, so upstream's `disable-positioning` option does nothing.
+- **Loading.** The banner initialises on the window `load` event. A `<script>` tag in the page, `async` included, works. A script that only gets added after `load`, for instance by a consent manager once the visitor accepts or by a tag manager trigger like GTM's "Window Loaded", never initialises and shows nothing, without any error.
 
-App icons live in `icons/<saleschannel>.png` (192 px, from each app's iOS icon in ec-platform) and are served from `https://code.easy-connect.io/smartbanner/icons/<saleschannel>.png`. Snippets must use those, never the App Store or Play Store image URLs: those send every visitor's IP to Apple or Google on page load.
+App icons live in `icons/<saleschannel>.png` (192 px, from each app's iOS icon in ec-platform) and are served from `https://code.easy-connect.io/smartbanner/icons/<saleschannel>.png`. Snippets must use those, never the App Store or Play Store image URLs: the icon loads on every page view, so those would send every visitor's IP to Apple or Google before any consent. Apart from the icon the banner makes no requests, and its only cookie is `smartbanner_exited`, set when the visitor closes it.
+
+To send the button to a tracked link (a Branch `app.link`, say) only once the visitor has consented, and to the plain store URLs otherwise, put the store URLs in the meta tags, turn on [API mode](#smartbanner-api-use) and swap the URLs before publishing:
+
+```html
+<meta name="smartbanner:api" content="true">
+<script>
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      if (visitorHasConsented()) { // your consent manager's check
+        smartbanner.options.buttonUrlApple = 'https://<app>.app.link/<ios-link>';
+        smartbanner.options.buttonUrlGoogle = 'https://<app>.app.link/<android-link>';
+      }
+      smartbanner.publish();
+    }, 0);
+  });
+</script>
+```
+
+The meta tags are read once, at `load`, so changing them afterwards has no effect; set `smartbanner.options` instead. A consent given while the banner is already showing applies from the next page view.
 
 To merge upstream: `git remote add upstream https://github.com/ain/smartbanner.js` once, then `git fetch upstream && git merge upstream/main`, then `npm run build` and commit `dist/`.
 
-Pushing a change to `dist/smartbanner.min.{js,css}` or `icons/` to `main` deploys it to `s3://code.easy-connect.io/smartbanner/` (AWS prod1) through `.github/workflows/deploy.yml`, which you can also run by hand from the Actions tab. The workflow fails if the committed `dist/` wasn't built from `src/`. CloudFront caches for at most 10 seconds, so a deploy is live almost immediately on every customer site. The workflow signs in to AWS as the `smartbanner-github-deploy` role, which `deploy/github-oidc-role.sh` creates once.
+Pushing a change to `dist/smartbanner.min.{js,css}` or `icons/` to `main` deploys it to `s3://code.easy-connect.io/smartbanner/` (AWS prod1) through `.github/workflows/deploy.yml`, which you can also run by hand from the Actions tab. CI fails any PR whose committed `dist/` wasn't built from `src/` (`scripts/check-dist.sh`), and the deploy checks again before it uploads. CloudFront caches for at most 10 seconds, so a deploy is live almost immediately on every customer site. The workflow signs in to AWS as the `smartbanner-github-deploy` role, which `deploy/github-oidc-role.sh` creates once.
 
 ## Features
 
 - Populating smartbanner is as easy as [adding meta tags](#basic-usage), no JavaScript knowledge required
 - Default [Smart App Banner](https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/PromotingAppswithAppBanners/PromotingAppswithAppBanners.html) like design
-- Customisable info with i18n support and design by using
-  - automatically generated `smartbanner--<platform>` class on wrapper
-  - [custom design modifier](#custom-design-modifier) for externally defined styles or same design on all platforms
+- Customisable info with i18n support
+- Platform-specific design, or the same design on all platforms with a [custom design modifier](#custom-design-modifier)
 - Close button that closes the banner and sets cookie to keep banner closed
   - for current session or [for defined time](#time-limited-close)
   - site-wide or [at a designated path](#path-designated-close)
 - Platform-specific app icon and _View_ button
 - User Agent specific targeting
-- Pure JavaScript coming in at __6.6KB minified__!
+- Pure JavaScript coming in at __9.2KB minified__ (3.2KB gzipped), CSS included
 - [Events](#events) emitted for [API](#smartbanner-api-use) implementations
 - ECMAScript 6 (`es2015`) source
 
@@ -53,12 +72,13 @@ Pushing a change to `dist/smartbanner.min.{js,css}` or `icons/` to `main` deploy
 <!-- End SmartBanner configuration -->
 ```
 
-Additionally, JavaScript and CSS have to be included:
+Additionally, the script has to be included. It carries its own CSS, so no stylesheet is needed:
 
 ```html
-<link rel="stylesheet" href="/dist/smartbanner.min.css">
-<script src="/dist/smartbanner.min.js"></script>
+<script async src="https://code.easy-connect.io/smartbanner/smartbanner.min.js"></script>
 ```
+
+The script has to be in the page before the window `load` event fires; one added later never shows the banner.
 
 ## Advanced Usage
 
@@ -91,12 +111,19 @@ Note that `include-user-agent-regex` only adds to what `enabled-platforms` allow
 
 **Note:** You can define `enabled-platforms`, `exclude-user-agent-regex` and `include-user-agent-regex` at the same time. Smartbanner is shown when either `enabled-platforms` or `include-user-agent-regex` matches, unless `exclude-user-agent-regex` matches, which always takes precedence.
 
-### Disable Positioning
+### Position
 
-If you want to position smart app banner yourself (e.g. in CSS), you can disable built-in positioning with following option:
 ```html
-<meta name="smartbanner:disable-positioning" content="true">
+<meta name="smartbanner:position" content="bottom">
 ```
+
+| Value           | Placement                                                                                                                  |
+| :-----          | :-----------                                                                                                               |
+| `top` (default) | At the top of `<body>`, in the page flow: the content below moves down by the banner's height, and both scroll together. |
+| `top-absolute`  | At the top of the page, over the content, and scrolls away with it.                                                        |
+| `bottom`        | Fixed to the bottom of the viewport, over the content.                                                                     |
+
+The script never moves page content itself, so upstream's `disable-positioning` option does nothing here.
 
 ### Hide the smartbanner completely
 
@@ -126,23 +153,13 @@ Following example would keep smartbanner closed under `/shop` only (but only whe
 
 ### Custom design modifier
 
-smartbanner uses built-in platform-specific styles (e.g. `smartbanner--ios` or `smartbanner--android`), but this behaviour can be altered by adding custom design modifier that allows use of:
+smartbanner uses built-in platform-specific styles (`smartbanner--ios` or `smartbanner--android`). A custom design modifier forces one of them on all platforms, e.g.:
 
-- externally defined styles, e.g.:
+```html
+<meta name="smartbanner:custom-design-modifier" content="ios">
+```
 
-    ```html
-    <meta name="smartbanner:custom-design-modifier" content="mysite.com">
-    ```
-
-    which would add `smartbanner--mysite.com` class on wrapper.
-
-- forced platform-specific styles on all platforms, e.g.:
-
-    ```html
-    <meta name="smartbanner:custom-design-modifier" content="ios">
-    ```
-
-    which would add `smartbanner--ios` class on wrapper regardless of actual platform.
+which would add `smartbanner--ios` class on wrapper regardless of actual platform. The banner renders in a shadow root, so styles defined by the page can't reach it: any value other than `android` gets the iOS design.
 
 ### Platform-specific button labels
 If you want to have a different button label for each platform, you can use the following meta tags:
@@ -163,11 +180,13 @@ which also accepts `true` as value, and add smartbanner to DOM manually:
 
 ```js
 window.addEventListener('load', function() {
-  smartbanner.publish();
+  setTimeout(function() {
+    smartbanner.publish();
+  }, 0);
 });
 ```
 
-**Note:** `smartbanner` is exposed on `window` only once the page has loaded, hence the `load` handler above.
+**Note:** `smartbanner` is exposed on `window` by the script's own `load` handler. With an `async` script the page's `load` handler can run first, and calling `smartbanner.publish()` straight from it throws a `ReferenceError`. The `setTimeout` runs it after every `load` handler.
 
 ### Events
 
