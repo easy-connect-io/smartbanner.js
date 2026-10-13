@@ -3,7 +3,7 @@
   "version": "1.30.0",
   "type": "module",
   "description": "Customisable smart app banner for iOS and Android",
-  "homepage": "https://github.com/ain/smartbanner.js#readme",
+  "homepage": "https://github.com/easy-connect-io/smartbanner.js#readme",
   "author": {
     "name": "Ain Tohvri",
     "email": "ain@flashbit.net"
@@ -14,7 +14,6 @@
   "main": "dist/smartbanner.js",
   "style": "dist/smartbanner.css",
   "license": "GPL-3.0",
-  "bugs": "https://github.com/ain/smartbanner.js/issues",
   "devDependencies": {
     "add-banner": "github:ain/add-banner#a579acb",
     "c8": "^12.0.0",
@@ -32,15 +31,15 @@
     "shell-quote": "^1.12.0"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ain/smartbanner.js.git"
+    "url": "https://github.com/easy-connect-io/smartbanner.js.git"
   },
   "scripts": {
     "bannerise": "add-banner --template banner.tmpl dist/smartbanner.css dist/smartbanner.js dist/smartbanner.min.css dist/smartbanner.min.js",
-    "eslint": "eslint src/*.js",
+    "eslint": "eslint src",
     "prebuild": "npm run build:css && npm run build:css-inline && npm run build:js",
     "build:js": "esbuild src/index.js --bundle --target=es2015 --outfile=dist/smartbanner.js",
     "build:js-min": "esbuild src/index.js --bundle --target=es2015 --minify --outfile=dist/smartbanner.min.js",
