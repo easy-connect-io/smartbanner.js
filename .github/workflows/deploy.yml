@@ -8,6 +8,9 @@ name: Deploy
 # Auth: GitHub OIDC into the prod1 role smartbanner-github-deploy, which trusts this repo's
 # main branch only and may only s3:PutObject under code.easy-connect.io/smartbanner/.
 # Create it once with deploy/github-oidc-role.sh.
+#
+# npm code (dependency install scripts, tests, the build) only runs in the verify job, which
+# can't request an OIDC token. The deploy job, which can, runs no npm code at all.
 
 on:
   push:
@@ -26,26 +29,29 @@ permissions:
   contents: read
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+      - run: npm ci
+      - run: npm test
+      - run: scripts/check-dist.sh
+
   deploy:
+    needs: verify
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: package.json
-      - run: npm ci
-      - run: npm test
-      - name: Check that the committed dist/ was built from src/
-        run: |
-          npm run build
-          # The banner's copyright year is the build year, so ignore that line.
-          if ! git diff --exit-code -I 'Copyright ©' -- dist/smartbanner.min.js dist/smartbanner.min.css; then
-            echo "::error::dist/ doesn't match src/. Run npm run build and commit dist/."
-            exit 1
-          fi
+          persist-credentials: false
       - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: arn:aws:iam::842001031685:role/smartbanner-github-deploy
