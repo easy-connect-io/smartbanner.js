@@ -256,12 +256,17 @@
 
   // src/index.js
   var smartbanner;
-  window.addEventListener("load", function() {
+  function init() {
     smartbanner = new SmartBanner();
     if (smartbanner.apiEnabled) {
       window.smartbanner = smartbanner;
     } else {
       smartbanner.publish();
     }
-  });
+  }
+  if (document.readyState === "complete") {
+    init();
+  } else {
+    window.addEventListener("load", init);
+  }
 })();

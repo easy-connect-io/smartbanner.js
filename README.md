@@ -9,7 +9,7 @@ This is easy-connect's fork of [ain/smartbanner.js](https://github.com/ain/smart
 
 - **Shadow root.** The banner renders inside a shadow root with its CSS inlined into the JS (`scripts/inline-css.js` generates `src/smartbanner-styles.js`), so the host page's styles can't reach it. Pages only need the `<script>`, no stylesheet, and the [custom design modifier](#custom-design-modifier) can only switch between the built-in iOS and Android designs.
 - **[Position](#position).** `top` (the default) puts the banner at the top of `<body>`, in the page flow, so the content below moves down by its height. `top-absolute` and `bottom` place it over the content instead. The script never moves page content itself, so upstream's `disable-positioning` option does nothing.
-- **Loading.** The banner initialises on the window `load` event. A `<script>` tag in the page, `async` included, works. A script that only gets added after `load`, for instance by a consent manager once the visitor accepts or by a tag manager trigger like GTM's "Window Loaded", never initialises and shows nothing, without any error.
+- **Loading.** The banner initialises on the window `load` event, or straight away if the script only runs after it, for instance when a consent manager adds it once the visitor accepts, or a tag manager trigger like GTM's "Window Loaded" does. Upstream never shows the banner in that case.
 
 App icons live in `icons/<saleschannel>.png` (192 px, from each app's iOS icon in ec-platform) and are served from `https://code.easy-connect.io/smartbanner/icons/<saleschannel>.png`. Snippets must use those, never the App Store or Play Store image URLs: the icon loads on every page view, so those would send every visitor's IP to Apple or Google before any consent. Apart from the icon the banner makes no requests, and its only cookie is `smartbanner_exited`, set when the visitor closes it.
 
@@ -30,7 +30,7 @@ To send the button to a tracked link (a Branch `app.link`, say) only once the vi
 </script>
 ```
 
-The meta tags are read once, at `load`, so changing them afterwards has no effect; set `smartbanner.options` instead. A consent given while the banner is already showing applies from the next page view.
+The meta tags are read once, when the banner initialises, so changing them afterwards has no effect; set `smartbanner.options` instead. If your consent manager adds the script itself, after `load`, do the swap and the `publish()` in the script's `onload` instead. A consent given while the banner is already showing applies from the next page view.
 
 To merge upstream: `git remote add upstream https://github.com/ain/smartbanner.js` once, then `git fetch upstream && git merge upstream/main`, then `npm run build` and commit `dist/`.
 
@@ -47,7 +47,7 @@ Pushing a change to `dist/smartbanner.min.{js,css}` or `icons/` to `main` deploy
   - site-wide or [at a designated path](#path-designated-close)
 - Platform-specific app icon and _View_ button
 - User Agent specific targeting
-- Pure JavaScript coming in at __9.2KB minified__ (3.2KB gzipped), CSS included
+- Pure JavaScript coming in at __9.3KB minified__ (3.2KB gzipped), CSS included
 - [Events](#events) emitted for [API](#smartbanner-api-use) implementations
 - ECMAScript 6 (`es2015`) source
 
@@ -77,8 +77,6 @@ Additionally, the script has to be included. It carries its own CSS, so no style
 ```html
 <script async src="https://code.easy-connect.io/smartbanner/smartbanner.min.js"></script>
 ```
-
-The script has to be in the page before the window `load` event fires; one added later never shows the banner.
 
 ## Advanced Usage
 
